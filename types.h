@@ -23,7 +23,7 @@ using Bitboard = uint64_t[4];
 
 enum Move : int {
   MOVE_NONE,
-  MOVE_NULL = 257 // there was 65, which is 64+1, I suppose
+  MOVE_NULL = 257
 };
 
 enum MoveType {
@@ -178,6 +178,51 @@ constexpr Rank rank_of(Square s) {
   return Rank(s >> 4);
 }
 
+constexpr Square relative_square(Color c, Square s) {
+  return Square(s ^ (c * 240));
+}
 
+constexpr Rank relative_rank(Color c, Rank r) {
+  return Rank(r ^ (c * 15));
+}
+
+constexpr Rank relative_rank(Color c, Square s) {
+  return relative_rank(c, rank_of(s));
+}
+
+constexpr Direction pawn_push(Color c) {
+  return c == WHITE ? NORTH : SOUTH;
+}
+
+constexpr Square from_sq(Move m) {
+  assert(is_ok(m));
+  return Square((m >> 8) & 0xFF);
+}
+
+constexpr Square to_sq(Move m) {
+  assert(is_ok(m));
+  return Square(m & 0xFF);
+}
+
+constexpr int from_to(Move m) {
+  return m & 0xFFFF;
+}
+
+constexpr MoveType type_of(Move m) {
+  return MoveType(m & (3 << 18));
+}
+
+constexpr PieceType promotion_type(Move m) {
+  return PieceType(((m >> 16) & 3) + KNIGHT);
+}
+
+constexpr Move make_move(Square from, Square to) {
+  return Move((from << 8) + to);
+}
+
+template<MoveType T>
+constexpr Move make(Square from, Square to, PieceType pt = KNIGHT) {
+  return Move(T + ((pt - KNIGHT) << 16) + (from << 8) + to);
+}
 
 }
