@@ -1,6 +1,7 @@
 #ifndef BITBOARD_H_INCLUDED
 #define BITBOARD_H_INCLUDED
 
+#include <iostream> // to remove later
 #include <string>
 #include "types.h"
 
@@ -8,7 +9,7 @@ namespace Stockfish {
 
 namespace Bitboards {
 
-//void init();
+void init();
 std::string pretty(const Bitboard bb);
 
 inline bool getBit(Bitboard bb, int f, int r) {
@@ -16,9 +17,9 @@ inline bool getBit(Bitboard bb, int f, int r) {
 }
 
 constexpr Bitboard NoSquares = {.b = {0ULL, 0ULL, 0ULL, 0ULL}};
-constexpr Bitboard AllSquares = {.b = {~NoSquares.b[0], ~NoSquares.b[1], ~NoSquares.b[2], ~NoSquares.b[3]}};
+constexpr Bitboard AllSquares = ~NoSquares;
 constexpr Bitboard DarkSquares = {.b = {0xAAAA5555AAAA5555ULL, 0xAAAA5555AAAA5555ULL, 0xAAAA5555AAAA5555ULL, 0xAAAA5555AAAA5555ULL}};
-constexpr Bitboard LightSquares = {.b = {~DarkSquares.b[0], ~DarkSquares.b[1], ~DarkSquares.b[2], ~DarkSquares.b[3]}};
+constexpr Bitboard LightSquares = ~DarkSquares;
 
 constexpr Bitboard FileABB = {.b = {0x0001000100010001ULL, 0x0001000100010001ULL, 0x0001000100010001ULL, 0x0001000100010001ULL}};
 constexpr Bitboard FileBBB = {.b = {FileABB.b[0]<<1, FileABB.b[1]<<1, FileABB.b[2]<<1, FileABB.b[3]<<1}};
@@ -54,7 +55,29 @@ constexpr Bitboard Rank14BB = {.b = {0, 0, 0, 0xFFFFULL << (16*1)}};
 constexpr Bitboard Rank15BB = {.b = {0, 0, 0, 0xFFFFULL << (16*2)}};
 constexpr Bitboard Rank16BB = {.b = {0, 0, 0, 0xFFFFULL << (16*3)}};
 
-}
+extern uint8_t PopCnt16[1 << 16];
+extern uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
+
+extern Bitboard BetweenBB[SQUARE_NB][SQUARE_NB];
+extern Bitboard LineBB[SQUARE_NB][SQUARE_NB];
+extern Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
+extern Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
+
+/// Magic holds all magic bitboards relevant data for a single square
+struct Magic {
+  Bitboard  mask;
+  Bitboard  magic;
+  Bitboard* attacks;
+  unsigned  shift;
+
+  // Compute the attack's index using the 'magic bitboards' approach
+  Bitboard index(Bitboard occupied) const {
+    // I presume 64bit computer (if that's what Is64Bit meant)
+    return (((occupied & mask) * magic) >> shift);
+  }
+};
+
+} // namespace Bitboards
 
 } // namespace Stockfish
 

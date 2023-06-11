@@ -9,8 +9,83 @@
 
 namespace Stockfish
 {
-using Key = uint64_t;
-struct Bitboard { uint64_t b[4]; };
+
+struct Bitboard {
+    uint64_t b[4];
+
+    constexpr Bitboard operator >> (unsigned int bits) const {
+        Bitboard bb = {.b {b[0], b[1], b[2], b[3]}};
+        unsigned int nn = 64 - bits;
+        uint64_t mask = ~0 >> nn;
+        uint64_t r = b[1] & mask;
+        bb.b[0] = (b[0] >> bits) | (r << nn);
+        r = b[2] & mask;
+        bb.b[1] = (b[1] >> bits) | (r << nn);
+        r = b[3] & mask;
+        bb.b[2] = (b[2] >> bits) | (r << nn);
+        bb.b[3] >>= bits;
+        return bb;
+    };
+
+    constexpr Bitboard operator << (unsigned int bits) const {
+        Bitboard bb = {.b {b[0], b[1], b[2], b[3]}};
+        unsigned int nn = 64 - bits;
+        uint64_t mask = ~0 << nn;
+        uint64_t r = b[1] & mask;
+        bb.b[0] = (b[0] << bits) | (r >> nn);
+        r = b[2] & mask;
+        bb.b[1] = (b[1] << bits) | (r >> nn);
+        r = b[3] & mask;
+        bb.b[2] = (b[2] << bits) | (r >> nn);
+        bb.b[3] <<= bits;
+        return bb;
+    };
+
+    constexpr Bitboard operator ~ () const {
+        return {.b {~b[0], ~b[1], ~b[2], ~b[3]}};
+    }
+};
+
+inline Bitboard operator |(const Bitboard x, const Bitboard y) {
+    Bitboard t;
+    t.b[0] = x.b[0] | y.b[0];
+    t.b[1] = x.b[1] | y.b[1];
+    t.b[2] = x.b[2] | y.b[2];
+    t.b[3] = x.b[3] | y.b[3];
+    return t;
+}
+inline Bitboard operator &(const Bitboard x, const Bitboard y) {
+    Bitboard t;
+    t.b[0] = x.b[0] & y.b[0];
+    t.b[1] = x.b[1] & y.b[1];
+    t.b[2] = x.b[2] & y.b[2];
+    t.b[3] = x.b[3] & y.b[3];
+    return t;
+}
+inline Bitboard operator ^(const Bitboard x, const Bitboard y) {
+    Bitboard t;
+    t.b[0] = x.b[0] ^ y.b[0];
+    t.b[1] = x.b[1] ^ y.b[1];
+    t.b[2] = x.b[2] ^ y.b[2];
+    t.b[3] = x.b[3] ^ y.b[3];
+    return t;
+}
+
+
+inline Bitboard operator *(const Bitboard x, const Bitboard y) {
+    uint64_t w[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint64_t xx[8] = {(uint32_t)x.b[0], x.b[0]>>32, (uint32_t)x.b[1], x.b[1]>>32, (uint32_t)x.b[2], x.b[2]>>32, (uint32_t)x.b[3], x.b[3]>>32};
+    uint64_t yy[8] = {(uint32_t)y.b[0], y.b[0]>>32, (uint32_t)y.b[1], y.b[1]>>32, (uint32_t)y.b[2], y.b[2]>>32, (uint32_t)y.b[3], y.b[3]>>32};
+    for (int i = 0; i <= 7; i++) {
+        uint64_t k = 0ULL;
+        for (int j = 0; j <= 7-i; j++) {
+            uint64_t t = xx[i] * yy[j] + w[i+j] + k;
+            w[i+j] = (uint32_t)t;
+            k = t >> 32;
+        }
+    }
+    return {.b {w[0] | (w[1] << 32), w[2] | (w[3] << 32), w[4] | (w[5] << 32), w[6] | (w[7] << 32)}};
+}
 
 /// A move needs 19 (three bytes?) bits to be stored
 ///
