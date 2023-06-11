@@ -92,6 +92,33 @@ struct Magic {
   }
 };
 
+extern Magic RookMagics[SQUARE_NB];
+extern Magic BishopMagics[SQUARE_NB];
+
+inline Bitboard square_bb(Square s) {
+  assert(is_ok(s));
+  unsigned int r = s >> 4, f = s & 0xF;
+  Bitboard bb = {.b {0, 0, 0, 0}};
+  bb.b[r >> 2] = 1ULL << (((r & 3) << 4) | f);
+  return bb;
+}
+
+/// Overloads of bitwise operators between a Bitboard and a Square for testing
+/// whether a given bit is set in a bitboard, and for setting and clearing bits.
+
+inline Bitboard  operator&( Bitboard  b, Square s) { return b &  square_bb(s); }
+inline Bitboard  operator|( Bitboard  b, Square s) { return b |  square_bb(s); }
+inline Bitboard  operator^( Bitboard  b, Square s) { return b ^  square_bb(s); }
+inline Bitboard& operator|=(Bitboard& b, Square s) { return b |= square_bb(s); }
+inline Bitboard& operator^=(Bitboard& b, Square s) { return b ^= square_bb(s); }
+
+inline Bitboard  operator&(Square s, Bitboard b) { return b & s; }
+inline Bitboard  operator|(Square s, Bitboard b) { return b | s; }
+inline Bitboard  operator^(Square s, Bitboard b) { return b ^ s; }
+
+inline Bitboard  operator|(Square s1, Square s2) { return square_bb(s1) | s2; }
+
+
 } // namespace Bitboards
 
 } // namespace Stockfish

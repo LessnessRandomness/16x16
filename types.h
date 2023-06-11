@@ -56,6 +56,28 @@ struct Bitboard {
         return bb;
     };
 
+    inline Bitboard& operator |=(const Bitboard x) {
+        b[0] |= x.b[0];
+        b[1] |= x.b[1];
+        b[2] |= x.b[2];
+        b[3] |= x.b[3];
+        return *this;
+    }
+    inline Bitboard& operator &=(const Bitboard x) {
+        b[0] &= x.b[0];
+        b[1] &= x.b[1];
+        b[2] &= x.b[2];
+        b[3] &= x.b[3];
+        return *this;
+    }
+    inline Bitboard& operator ^=(const Bitboard x) {
+        b[0] ^= x.b[0];
+        b[1] ^= x.b[1];
+        b[2] ^= x.b[2];
+        b[3] ^= x.b[3];
+        return *this;
+    }
+
     constexpr Bitboard operator ~ () const {
         return {.b {~b[0], ~b[1], ~b[2], ~b[3]}};
     }
