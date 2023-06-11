@@ -1,3 +1,6 @@
+#ifndef TYPES_H_INCLUDED
+#define TYPES_H_INCLUDED
+
 #include <cassert>
 #include <cctype>
 #include <cstdint>
@@ -7,7 +10,7 @@
 namespace Stockfish
 {
 using Key = uint64_t;
-using Bitboard = uint64_t[4];
+struct Bitboard { uint64_t b[4]; };
 
 /// A move needs 19 (three bytes?) bits to be stored
 ///
@@ -226,3 +229,5 @@ constexpr Move make(Square from, Square to, PieceType pt = KNIGHT) {
 }
 
 }
+
+#endif
