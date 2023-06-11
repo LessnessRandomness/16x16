@@ -118,6 +118,19 @@ inline Bitboard  operator^(Square s, Bitboard b) { return b ^ s; }
 
 inline Bitboard  operator|(Square s1, Square s2) { return square_bb(s1) | s2; }
 
+constexpr inline more_than_one_b64(uint64_t x) {
+    return x & (x - 1);
+}
+
+constexpr bool more_than_one(Bitboard b) {
+    if (more_than_one_b64(b.b[0])) return true;
+    if (more_than_one_b64(b.b[1])) return true;
+    if (more_than_one_b64(b.b[2])) return true;
+    if (more_than_one_b64(b.b[3])) return true;
+    unsigned int t = ((b.b[0] ? 1 : 0) << 3) | ((b.b[1] ? 1 : 0) << 2) | ((b.b[2] ? 1 : 0) << 1) | (b.b[3] ? 1 : 0);
+    return (t & (t - 1));
+}
+
 
 } // namespace Bitboards
 
