@@ -108,6 +108,13 @@ inline Bitboard operator *(const Bitboard x, const Bitboard y) {
     return {.b {w[0] | (w[1] << 32), w[2] | (w[3] << 32), w[4] | (w[5] << 32), w[6] | (w[7] << 32)}};
 }
 
+constexpr Bitboard operator - (const Bitboard x, const Bitboard y) {
+    Bitboard result = {.b = {0, 0, 0, 0}};
+    /// ???
+    return result;
+}
+
+
 /// A move needs 19 (three bytes?) bits to be stored
 ///
 /// bit  0- 7: destination square (from 0 to 255)

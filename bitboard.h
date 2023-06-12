@@ -31,6 +31,10 @@ inline bool getBit(Bitboard bb, int f, int r) {
     return ((bb.b[r >> 2] >> ((r & 3) << 4)) & (1 << f));
 }
 
+inline bool nonemptyBB(Bitboard bb) {
+    return (bb.b[0] | bb.b[1] | bb.b[2] | bb.b[3]);
+}
+
 constexpr Bitboard NoSquares = {.b = {0ULL, 0ULL, 0ULL, 0ULL}};
 constexpr Bitboard AllSquares = ~NoSquares;
 constexpr Bitboard DarkSquares = {.b = {0xAAAA5555AAAA5555ULL, 0xAAAA5555AAAA5555ULL, 0xAAAA5555AAAA5555ULL, 0xAAAA5555AAAA5555ULL}};
@@ -318,7 +322,7 @@ inline int popcount(Bitboard b) {
 /// lsb() and msb() return the least/most significant bit in a non-zero bitboard
 // Assumed gcc or compatible compiler
 inline Square lsb(Bitboard b) {
-  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  assert(nonemptyBB(b));
   if (b.b[0]) {
     unsigned t = __builtin_ctzll(b.b[0]);
     return make_square((File)(t & 0xF), (Rank)(t >> 4));
@@ -336,7 +340,7 @@ inline Square lsb(Bitboard b) {
 }
 
 inline Square msb(Bitboard b) {
-  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  assert(nonemptyBB(b));
   if (b.b[3]) {
     unsigned t = 63 ^ __builtin_clzll(b.b[3]);
     return make_square((File)(t & 0xF), (Rank)((t >> 4) + 12));
@@ -357,14 +361,14 @@ inline Square msb(Bitboard b) {
 /// square of a non-zero bitboard. It is equivalent to square_bb(lsb(bb)).
 
 inline Bitboard least_significant_square_bb(Bitboard b) {
-  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  assert(nonemptyBB(b));
   return square_bb(lsb(b));
 }
 
 /// pop_lsb() finds and clears the least significant bit in a non-zero bitboard
 
 inline Square pop_lsb(Bitboard& b) {
-  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  assert(nonemptyBB(b));
   const Square s = lsb(b);
   b &= ~square_bb(s);
   return s;
@@ -373,7 +377,7 @@ inline Square pop_lsb(Bitboard& b) {
 /// frontmost_sq() returns the most advanced square for the given color,
 /// requires a non-zero bitboard.
 inline Square frontmost_sq(Color c, Bitboard b) {
-  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  assert(nonemptyBB(b));
   return c == WHITE ? msb(b) : lsb(b);
 }
 
