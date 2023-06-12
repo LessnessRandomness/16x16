@@ -20,7 +20,7 @@
 
 namespace Stockfish {
 
-uint8_t PopCnt16[1 << 16]; // ??
+uint8_t PopCnt16[1 << 16];
 uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 
 Bitboard LineBB[SQUARE_NB][SQUARE_NB];
@@ -33,6 +33,7 @@ Bitboards::Magic BishopMagics[SQUARE_NB];
 
 namespace {
 
+  // I need to change the numbers, probably!!
   Bitboard RookTable[0x19000];  // To store rook attacks
   Bitboard BishopTable[0x1480]; // To store bishop attacks
 

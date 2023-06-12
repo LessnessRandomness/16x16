@@ -22,7 +22,9 @@ using namespace Bitboards;
 
 int main() {
     cout << "Hello world!" << endl;
-    Bitboard b = make_square(FILE_J, RANK_12) | make_square(FILE_P, RANK_3);
+    Bitboard b = rank_bb(RANK_12);
+    cout << pretty(b) << endl;
+    b = file_bb(FILE_K);
     cout << pretty(b) << endl;
     return 0;
 }

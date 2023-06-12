@@ -83,29 +83,14 @@ struct Bitboard {
     }
 };
 
-inline Bitboard operator |(const Bitboard x, const Bitboard y) {
-    Bitboard t;
-    t.b[0] = x.b[0] | y.b[0];
-    t.b[1] = x.b[1] | y.b[1];
-    t.b[2] = x.b[2] | y.b[2];
-    t.b[3] = x.b[3] | y.b[3];
-    return t;
+constexpr inline Bitboard operator |(const Bitboard x, const Bitboard y) {
+    return {.b {x.b[0] | y.b[0], x.b[1] | y.b[1], x.b[2] | y.b[2], x.b[3] | y.b[3]}};
 }
-inline Bitboard operator &(const Bitboard x, const Bitboard y) {
-    Bitboard t;
-    t.b[0] = x.b[0] & y.b[0];
-    t.b[1] = x.b[1] & y.b[1];
-    t.b[2] = x.b[2] & y.b[2];
-    t.b[3] = x.b[3] & y.b[3];
-    return t;
+constexpr inline Bitboard operator &(const Bitboard x, const Bitboard y) {
+    return {.b {x.b[0] & y.b[0], x.b[1] & y.b[1], x.b[2] & y.b[2], x.b[3] & y.b[3]}};
 }
-inline Bitboard operator ^(const Bitboard x, const Bitboard y) {
-    Bitboard t;
-    t.b[0] = x.b[0] ^ y.b[0];
-    t.b[1] = x.b[1] ^ y.b[1];
-    t.b[2] = x.b[2] ^ y.b[2];
-    t.b[3] = x.b[3] ^ y.b[3];
-    return t;
+constexpr inline Bitboard operator ^(const Bitboard x, const Bitboard y) {
+    return {.b {x.b[0] ^ y.b[0], x.b[1] ^ y.b[1], x.b[2] ^ y.b[2], x.b[3] ^ y.b[3]}};
 }
 
 inline Bitboard operator *(const Bitboard x, const Bitboard y) {
