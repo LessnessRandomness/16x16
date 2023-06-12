@@ -25,6 +25,8 @@
 namespace Stockfish
 {
 
+using Key = uint64_t;
+
 struct Bitboard {
     uint64_t b[4];
 
@@ -93,6 +95,14 @@ constexpr inline Bitboard operator ^(const Bitboard x, const Bitboard y) {
     return {.b {x.b[0] ^ y.b[0], x.b[1] ^ y.b[1], x.b[2] ^ y.b[2], x.b[3] ^ y.b[3]}};
 }
 
+constexpr inline bool operator ==(const Bitboard x, const Bitboard y) {
+    return (x.b[0] == y.b[0]) && (x.b[1] == y.b[1]) && (x.b[2] == y.b[2]) && (x.b[3] == y.b[3]);
+}
+
+constexpr inline bool operator !=(const Bitboard x, const Bitboard y) {
+    return !(x == y);
+}
+
 inline Bitboard operator *(const Bitboard x, const Bitboard y) {
     uint64_t w[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t xx[8] = {(uint32_t)x.b[0], x.b[0]>>32, (uint32_t)x.b[1], x.b[1]>>32, (uint32_t)x.b[2], x.b[2]>>32, (uint32_t)x.b[3], x.b[3]>>32};
@@ -109,8 +119,17 @@ inline Bitboard operator *(const Bitboard x, const Bitboard y) {
 }
 
 constexpr Bitboard operator - (const Bitboard x, const Bitboard y) {
-    Bitboard result = {.b = {0, 0, 0, 0}};
-    /// ???
+    Bitboard result = {.b = {0,0,0,0}};
+    uint64_t borrow = 0;
+    for(int i = 0; i < 4; ++i) {
+        if(x.b[i] >= y.b[i] + borrow) {
+            result.b[i] = x.b[i] - y.b[i] - borrow;
+            borrow = 0;
+        } else {
+            result.b[i] = ~0 - y.b[i] + x.b[i] + 1 - borrow;
+            borrow = 1;
+        }
+    }
     return result;
 }
 
@@ -330,6 +349,58 @@ template<MoveType T>
 constexpr Move make(Square from, Square to, PieceType pt = KNIGHT) {
   return Move(T + ((pt - KNIGHT) << 16) + (from << 8) + to);
 }
+
+/// Based on a congruential pseudo random number generator
+constexpr Key make_key(uint64_t seed) {
+  return seed * 6364136223846793005ULL + 1442695040888963407ULL;
+}
+
+// from misc.h
+
+
+/// xorshift64star Pseudo-Random Number Generator
+/// This class is based on original code written and dedicated
+/// to the public domain by Sebastiano Vigna (2014).
+/// It has the following characteristics:
+///
+///  -  Outputs 64-bit numbers
+///  -  Passes Dieharder and SmallCrush test batteries
+///  -  Does not require warm-up, no zeroland to escape
+///  -  Internal state is a single 64-bit integer
+///  -  Period is 2^64 - 1
+///  -  Speed: 1.60 ns/call (Core i7 @3.40GHz)
+///
+/// For further analysis see
+///   <http://vigna.di.unimi.it/ftp/papers/xorshift.pdf>
+
+class PRNG {
+
+  uint64_t s;
+
+  uint64_t rand64() {
+
+    s ^= s >> 12, s ^= s << 25, s ^= s >> 27;
+    return s * 2685821657736338717LL;
+  }
+
+public:
+  PRNG(uint64_t seed) : s(seed) { assert(seed); }
+
+  template<typename T> T rand() { return T(rand64()); }
+
+  /// Special generator used to fast init magic numbers.
+  /// Output values only have 1/8th of their bits set on average.
+  Bitboard sparse_rand() {
+    return {.b = {rand64() & rand64() & rand64(), \
+                  rand64() & rand64() & rand64(), \
+                  rand64() & rand64() & rand64(), \
+                  rand64() & rand64() & rand64()}};
+  }
+
+  //template<typename T> T sparse_rand()
+  //{ return T(rand64() & rand64() & rand64()); }
+};
+
 
 }
 
