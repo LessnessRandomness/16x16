@@ -22,9 +22,8 @@ using namespace Bitboards;
 
 int main() {
     cout << "Hello world!" << endl;
-    Bitboard b = rank_bb(RANK_12);
+    Bitboard b = rank_bb(RANK_12) & (file_bb(FILE_A) | file_bb(FILE_B));
     cout << pretty(b) << endl;
-    b = file_bb(FILE_K);
-    cout << pretty(b) << endl;
+    cout << "This bitboard has " << popcount(b) << " marked squares" << endl;
     return 0;
 }

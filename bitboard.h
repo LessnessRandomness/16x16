@@ -86,9 +86,9 @@ struct Magic {
   unsigned  shift;
 
   // Compute the attack's index using the 'magic bitboards' approach
-  Bitboard index(Bitboard occupied) const {
+  unsigned index(Bitboard occupied) const {
     // I presume 64bit computer (if that's what Is64Bit meant)
-    return (((occupied & mask) * magic) >> shift);
+    return unsigned((((occupied & mask) * magic) >> shift).b[0]);
   }
 };
 
