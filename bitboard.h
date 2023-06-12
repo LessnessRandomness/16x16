@@ -310,10 +310,50 @@ inline Bitboard attacks_bb(PieceType pt, Square s, Bitboard occupied) {
 }
 
 /// popcount() counts the number of non-zero bits in a bitboard
-
+// Assumed gcc or compatible compiler
 inline int popcount(Bitboard b) {
   return __builtin_popcountll(b.b[0]) + __builtin_popcountll(b.b[1]) + __builtin_popcountll(b.b[2]) + __builtin_popcountll(b.b[3]);
 }
+
+/// lsb() and msb() return the least/most significant bit in a non-zero bitboard
+// Assumed gcc or compatible compiler
+inline Square lsb(Bitboard b) {
+  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  if (b.b[0]) {
+    unsigned t = __builtin_ctzll(b.b[0]);
+    return make_square((File)(t & 0xF), (Rank)(t >> 4));
+  }
+  if (b.b[1]) {
+    unsigned t = __builtin_ctzll(b.b[1]);
+    return make_square((File)(t & 0xF), (Rank)((t >> 4) + 4));
+  }
+  if (b.b[2]) {
+    unsigned t = __builtin_ctzll(b.b[2]);
+    return make_square((File)(t & 0xF), (Rank)((t >> 4) + 8));
+  }
+  unsigned t = __builtin_ctzll(b.b[3]);
+  return make_square((File)(t & 0xF), (Rank)((t >> 4) + 12));
+}
+
+inline Square msb(Bitboard b) {
+  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  if (b.b[3]) {
+    unsigned t = 63 ^ __builtin_clzll(b.b[3]);
+    return make_square((File)(t & 0xF), (Rank)((t >> 4) + 12));
+  }
+  if (b.b[2]) {
+    unsigned t = 63 ^ __builtin_clzll(b.b[2]);
+    return make_square((File)(t & 0xF), (Rank)((t >> 4) + 8));
+  }
+  if (b.b[1]) {
+    unsigned t = 63 ^ __builtin_clzll(b.b[1]);
+    return make_square((File)(t & 0xF), (Rank)((t >> 4) + 4));
+  }
+  unsigned t = 63 ^ __builtin_clzll(b.b[0]);
+  return make_square((File)(t & 0xF), (Rank)(t >> 4));
+}
+
+
 
 } // namespace Bitboards
 
