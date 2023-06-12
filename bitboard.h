@@ -353,7 +353,29 @@ inline Square msb(Bitboard b) {
   return make_square((File)(t & 0xF), (Rank)(t >> 4));
 }
 
+/// least_significant_square_bb() returns the bitboard of the least significant
+/// square of a non-zero bitboard. It is equivalent to square_bb(lsb(bb)).
 
+inline Bitboard least_significant_square_bb(Bitboard b) {
+  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  return square_bb(lsb(b));
+}
+
+/// pop_lsb() finds and clears the least significant bit in a non-zero bitboard
+
+inline Square pop_lsb(Bitboard& b) {
+  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  const Square s = lsb(b);
+  b &= ~square_bb(s);
+  return s;
+}
+
+/// frontmost_sq() returns the most advanced square for the given color,
+/// requires a non-zero bitboard.
+inline Square frontmost_sq(Color c, Bitboard b) {
+  assert(b.b[0] | b.b[1] | b.b[2] | b.b[3]);
+  return c == WHITE ? msb(b) : lsb(b);
+}
 
 } // namespace Bitboards
 
