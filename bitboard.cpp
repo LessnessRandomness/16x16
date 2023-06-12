@@ -28,8 +28,8 @@ Bitboard BetweenBB[SQUARE_NB][SQUARE_NB];
 Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
 Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 
-Bitboards::Magic RookMagics[SQUARE_NB];
-Bitboards::Magic BishopMagics[SQUARE_NB];
+Magic RookMagics[SQUARE_NB];
+Magic BishopMagics[SQUARE_NB];
 
 namespace { // i don't get what this anonymous namespace is doing ????
 
@@ -38,7 +38,7 @@ namespace { // i don't get what this anonymous namespace is doing ????
 Bitboard RookTable[0x19000];  // To store rook attacks
 Bitboard BishopTable[0x1480]; // To store bishop attacks
 
-void init_magics(PieceType pt, Bitboard table[], Bitboards::Magic magics[]);
+void init_magics(PieceType pt, Bitboard table[], Magic magics[]);
 
 }
 
@@ -47,7 +47,7 @@ void init_magics(PieceType pt, Bitboard table[], Bitboards::Magic magics[]);
 
 inline Bitboard safe_destination(Square s, int step) {
     Square to = Square(s + step);
-    return is_ok(to) && Bitboards::distance(s, to) <= 2 ? Bitboards::square_bb(to) : (Bitboard){.b = {0, 0, 0, 0}};
+    return is_ok(to) && distance(s, to) <= 2 ? square_bb(to) : (Bitboard){.b = {0, 0, 0, 0}};
 }
 
 /// Bitboards::pretty() returns an ASCII representation of a bitboard suitable
@@ -113,15 +113,15 @@ namespace {
 
   Bitboard sliding_attack(PieceType pt, Square sq, Bitboard occupied) {
 
-    Bitboard attacks = Bitboards::NoSquares;
+    Bitboard attacks = NoSquares;
     Direction   RookDirections[4] = {NORTH, SOUTH, EAST, WEST};
     Direction BishopDirections[4] = {NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST};
 
     for (Direction d : (pt == ROOK ? RookDirections : BishopDirections))
     {
         Square s = sq;
-        while (Bitboards::nonemptyBB(safe_destination(s, d)) && !(Bitboards::nonemptyBB(occupied & Bitboards::square_bb(s))))
-            attacks |= Bitboards::square_bb(s += d);
+        while (nonemptyBB(safe_destination(s, d)) && !(nonemptyBB(occupied & square_bb(s))))
+            attacks |= square_bb(s += d);
     }
 
     return attacks;
@@ -133,7 +133,7 @@ namespace {
   // www.chessprogramming.org/Magic_Bitboards. In particular, here we use the so
   // called "fancy" approach.
 
-  void init_magics(PieceType pt, Bitboard table[], Bitboards::Magic magics[]) {
+  void init_magics(PieceType pt, Bitboard table[], Magic magics[]) {
 
     int seeds[][RANK_NB] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
@@ -149,18 +149,17 @@ namespace {
     for (Square s = SQ_A1; s <= SQ_P16; ++s)
     {
         // Board edges are not considered in the relevant occupancies
-        edges = ((Bitboards::Rank1BB | Bitboards::Rank16BB) & ~Bitboards::rank_bb(s)) \
-                 | ((Bitboards::FileABB | Bitboards::FilePBB) & ~Bitboards::file_bb(s));
+        edges = ((Rank1BB | Rank16BB) & ~rank_bb(s)) | ((FileABB | FilePBB) & ~file_bb(s));
 
         // Given a square 's', the mask is the bitboard of sliding attacks from
         // 's' computed on an empty board. The index must be big enough to contain
         // all the attacks for each possible subset of the mask and so is 2 power
         // the number of 1s of the mask. Hence we deduce the size of the shift to
         // apply to the 64 or 32 bits word to get the index.
-        Bitboards::Magic& m = magics[s];
-        m.mask  = sliding_attack(pt, s, Bitboards::NoSquares) & ~edges;
+        Magic& m = magics[s];
+        m.mask  = sliding_attack(pt, s, NoSquares) & ~edges;
         // I assume 64 bit computer
-        m.shift = 64 - Bitboards::popcount(m.mask);
+        m.shift = 64 - popcount(m.mask);
 
         // Set the offset for the attacks table of the square. We have individual
         // table sizes for each square with "Fancy Magic Bitboards".
@@ -168,14 +167,14 @@ namespace {
 
         // Use Carry-Rippler trick to enumerate all subsets of masks[s] and
         // store the corresponding sliding attack bitboard in reference[].
-        b = Bitboards::NoSquares;
+        b = NoSquares;
         size = 0;
         do {
             occupancy[size] = b;
             reference[size] = sliding_attack(pt, s, b);
             size++;
             b = (b - m.mask) & m.mask;
-        } while (Bitboards::nonemptyBB(b));
+        } while (nonemptyBB(b));
 
         // assumed 64bit computer and replaced is64Bit with true (LR)
         PRNG rng(seeds[true][rank_of(s)]);
@@ -184,7 +183,7 @@ namespace {
         // until we find the one that passes the verification test.
         for (int i = 0; i < size; )
         {
-            for (m.magic = Bitboards::NoSquares; Bitboards::popcount((m.magic * m.mask) >> 56) < 6; )
+            for (m.magic = NoSquares; popcount((m.magic * m.mask) >> 56) < 6; )
                 m.magic = rng.sparse_rand(); // rng.sparse_rand<Bitboard>();
 
             // A good magic must map every possible occupancy to an index that

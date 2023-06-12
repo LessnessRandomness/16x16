@@ -16,7 +16,6 @@
 #ifndef BITBOARD_H_INCLUDED
 #define BITBOARD_H_INCLUDED
 
-#include <iostream> // to remove later
 #include <string>
 #include "types.h"
 
@@ -26,6 +25,8 @@ namespace Bitboards {
 
 void init();
 std::string pretty(const Bitboard bb);
+
+}
 
 inline bool getBit(Bitboard bb, int f, int r) {
     return ((bb.b[r >> 2] >> ((r & 3) << 4)) & (1 << f));
@@ -380,8 +381,6 @@ inline Square frontmost_sq(Color c, Bitboard b) {
   assert(nonemptyBB(b));
   return c == WHITE ? msb(b) : lsb(b);
 }
-
-} // namespace Bitboards
 
 } // namespace Stockfish
 
