@@ -22,11 +22,7 @@ using namespace Bitboards;
 
 int main() {
     cout << "Hello world!" << endl;
-    Bitboard b = rank_bb(RANK_12) & (file_bb(FILE_A) | file_bb(FILE_B));
-    cout << pretty(b) << endl;
-    cout << "The lsb square:" << endl;
-    cout << pretty(square_bb(lsb(b))) << endl;
-    cout << "The msb square:" << endl;
-    cout << pretty(square_bb(msb(b))) << endl;
+    Bitboards::init();
+    cout << pretty(PseudoAttacks[KING][make_square(FILE_B, RANK_10)]) << endl;
     return 0;
 }

@@ -25,6 +25,9 @@
 namespace Stockfish
 {
 
+constexpr int MAX_MOVES = 256; // what if this isn't enough? used in movegen.h
+constexpr int MAX_PLY   = 246;
+
 using Key = uint64_t;
 
 struct Bitboard {

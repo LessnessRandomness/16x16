@@ -13,6 +13,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream> // for debugging
 #include <algorithm>
 #include <bitset>
 
@@ -72,6 +73,7 @@ std::string Bitboards::pretty(Bitboard b) {
 
 void Bitboards::init() {
 
+  std::cout << "started Bitboards::init" << std::endl;
   for (unsigned i = 0; i < (1 << 16); ++i)
       PopCnt16[i] = uint8_t(std::bitset<16>(i).count());
 
@@ -142,9 +144,14 @@ namespace {
     //int seeds[][RANK_NB] = { { 8977, 44560, 54343, 38998,  5731, 95205, 104912, 17020 },
     //                         {  728, 10316, 55013, 32803, 12281, 15100,  16645,   255 } };
 
-    // Numbers 4096 - how they are calculated?
-    Bitboard occupancy[4096], reference[4096], edges, b;
-    int epoch[4096] = {}, cnt = 0, size = 0;
+    std::cout << "inside init_magics" << std::endl;
+
+    Bitboard* occupancy = new Bitboard[1 << (FILE_NB + RANK_NB - 4)];
+    std::cout << "initialized occupancy array" << std::endl;
+    Bitboard* reference = new Bitboard[1 << (FILE_NB + RANK_NB - 4)];
+    Bitboard edges, b;
+    int* epoch = new int[1 << (FILE_NB + RANK_NB - 4)]();
+    int cnt = 0, size = 0;
 
     for (Square s = SQ_A1; s <= SQ_P16; ++s)
     {
@@ -170,6 +177,7 @@ namespace {
         b = NoSquares;
         size = 0;
         do {
+            std::cout << "size = " << size << std::endl;
             occupancy[size] = b;
             reference[size] = sliding_attack(pt, s, b);
             size++;
@@ -206,6 +214,10 @@ namespace {
             }
         }
     }
+
+    delete[] occupancy;
+    delete[] reference;
+    delete[] epoch;
   }
 }
 
