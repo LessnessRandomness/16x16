@@ -73,7 +73,6 @@ std::string Bitboards::pretty(Bitboard b) {
 
 void Bitboards::init() {
 
-  std::cout << "started Bitboards::init" << std::endl;
   for (unsigned i = 0; i < (1 << 16); ++i)
       PopCnt16[i] = uint8_t(std::bitset<16>(i).count());
 
@@ -144,10 +143,7 @@ namespace {
     //int seeds[][RANK_NB] = { { 8977, 44560, 54343, 38998,  5731, 95205, 104912, 17020 },
     //                         {  728, 10316, 55013, 32803, 12281, 15100,  16645,   255 } };
 
-    std::cout << "inside init_magics" << std::endl;
-
     Bitboard* occupancy = new Bitboard[1 << (FILE_NB + RANK_NB - 4)];
-    std::cout << "initialized occupancy array" << std::endl;
     Bitboard* reference = new Bitboard[1 << (FILE_NB + RANK_NB - 4)];
     Bitboard edges, b;
     int* epoch = new int[1 << (FILE_NB + RANK_NB - 4)]();
@@ -191,7 +187,7 @@ namespace {
         // until we find the one that passes the verification test.
         for (int i = 0; i < size; )
         {
-            for (m.magic = NoSquares; popcount((m.magic * m.mask) >> 56) < 6; )
+            for (m.magic = NoSquares; popcount((m.magic * m.mask) >> (SQUARE_NB - FILE_NB)) < FILE_NB - 2; )
                 m.magic = rng.sparse_rand(); // rng.sparse_rand<Bitboard>();
 
             // A good magic must map every possible occupancy to an index that
