@@ -32,12 +32,12 @@ Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 Magic RookMagics[SQUARE_NB];
 Magic BishopMagics[SQUARE_NB];
 
-namespace { // i don't get what this anonymous namespace is doing ????
+namespace {
 
 // ******************************************
 // I need to change the numbers, definitely!!
-Bitboard RookTable[0x19000];  // To store rook attacks
-Bitboard BishopTable[0x1480]; // To store bishop attacks
+Bitboard RookTable[0x10000000]; // 0x19000 // To store rook attacks
+Bitboard BishopTable[0x10000000]; // 1480 // To store bishop attacks
 
 void init_magics(PieceType pt, Bitboard table[], Magic magics[]);
 
@@ -48,7 +48,7 @@ void init_magics(PieceType pt, Bitboard table[], Magic magics[]);
 
 inline Bitboard safe_destination(Square s, int step) {
     Square to = Square(s + step);
-    return is_ok(to) && distance(s, to) <= 2 ? square_bb(to) : (Bitboard){.b = {0, 0, 0, 0}};
+    return is_ok(to) && distance(s, to) <= 2 ? square_bb(to) : NoSquares;
 }
 
 /// Bitboards::pretty() returns an ASCII representation of a bitboard suitable
@@ -145,9 +145,12 @@ namespace {
 
     Bitboard* occupancy = new Bitboard[1 << (FILE_NB + RANK_NB - 4)];
     Bitboard* reference = new Bitboard[1 << (FILE_NB + RANK_NB - 4)];
-    Bitboard edges, b;
     int* epoch = new int[1 << (FILE_NB + RANK_NB - 4)]();
+    Bitboard edges, b;
     int cnt = 0, size = 0;
+
+    // for calculating the sizes of both RookTable and BishopTable
+    uint64_t rookTableSize = 0ULL, bishopTableSize = 0ULL;
 
     for (Square s = SQ_A1; s <= SQ_P16; ++s)
     {
@@ -161,19 +164,30 @@ namespace {
         // apply to the 64 or 32 bits word to get the index.
         Magic& m = magics[s];
         m.mask  = sliding_attack(pt, s, NoSquares) & ~edges;
-        // I assume 64 bit computer
-        m.shift = 64 - popcount(m.mask);
+        std::cout << Bitboards::pretty(m.mask) << std::endl;
+        m.shift = 256 - popcount(m.mask);
 
         // Set the offset for the attacks table of the square. We have individual
         // table sizes for each square with "Fancy Magic Bitboards".
         m.attacks = s == SQ_A1 ? table : magics[s - 1].attacks + size;
+
+        //
+        if (pt == ROOK) {
+            rookTableSize += s == SQ_A1 ? 1 : size;
+            if (rookTableSize > 0x10000000)
+                std::cout << "Error: RookTable size is bigger than 0x10000000" << std::endl;
+            }
+        if (pt == BISHOP) {
+            bishopTableSize += s == SQ_A1 ? 1 : size;
+            if (bishopTableSize > 0x10000000)
+                std::cout << "Error: BishopTable size is bigger than 0x10000000" << std::endl;
+        }
 
         // Use Carry-Rippler trick to enumerate all subsets of masks[s] and
         // store the corresponding sliding attack bitboard in reference[].
         b = NoSquares;
         size = 0;
         do {
-            std::cout << "size = " << size << std::endl;
             occupancy[size] = b;
             reference[size] = sliding_attack(pt, s, b);
             size++;
@@ -196,6 +210,7 @@ namespace {
             // effect of verifying the magic. Keep track of the attempt count
             // and save it in epoch[], little speed-up trick to avoid resetting
             // m.attacks[] after every failed attempt.
+
             for (++cnt, i = 0; i < size; ++i)
             {
                 unsigned idx = m.index(occupancy[i]);
@@ -214,6 +229,13 @@ namespace {
     delete[] occupancy;
     delete[] reference;
     delete[] epoch;
+
+    //
+    if (pt == ROOK)
+        std::cout << "RookTable size is " << rookTableSize << std::endl;
+    if (pt == BISHOP)
+        std::cout << "BishopTable size is " << bishopTableSize << std::endl;
+
   }
 }
 
