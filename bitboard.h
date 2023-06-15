@@ -24,7 +24,7 @@ namespace Stockfish {
 namespace Bitboards {
 
 void init();
-std::string pretty(const Bitboard bb);
+std::string pretty(const Bitboard b);
 
 }
 
