@@ -14,6 +14,7 @@
 */
 
 #include <iostream> // for debugging
+#include <fstream>
 #include <algorithm>
 #include <bitset>
 
@@ -149,7 +150,7 @@ namespace {
     Bitboard edges, b;
     int cnt = 0, size = 0;
 
-    // for calculating the sizes of both RookTable and BishopTable
+    // for calculating the sizes of RookTable and BishopTable
     uint64_t rookTableSize = 0ULL, bishopTableSize = 0ULL;
 
     for (Square s = SQ_A1; s <= SQ_P16; ++s)
@@ -231,10 +232,42 @@ namespace {
     delete[] epoch;
 
     //
-    if (pt == ROOK)
+    if (pt == ROOK) {
         std::cout << "RookTable size is " << rookTableSize << std::endl;
-    if (pt == BISHOP)
+        std::ofstream rookTableFile;
+        rookTableFile.open("rookTable.txt", std::ios::out);
+        for (uint64_t i = 0; i < rookTableSize; i++) {
+            rookTableFile << RookTable[i].b[0] << " " << RookTable[i].b[1] << " " << RookTable[i].b[2] << " " << RookTable[i].b[3] << std::endl;
+        }
+        rookTableFile.close();
+        std::ofstream rookMagicsFile;
+        rookMagicsFile.open("rookMagics.txt", std::ios::out);
+        for (int i = 0; i < SQUARE_NB; i++) {
+            rookMagicsFile << RookMagics[i].mask.b[0] << " " << RookMagics[i].mask.b[1] << " " << RookMagics[i].mask.b[2] << " " << RookMagics[i].mask.b[3] << std::endl;
+            rookMagicsFile << RookMagics[i].magic.b[0] << " " << RookMagics[i].magic.b[1] << " " << RookMagics[i].magic.b[2] << " " << RookMagics[i].magic.b[3] << std::endl;
+            rookMagicsFile << (RookMagics[i].attacks - RookTable)/sizeof(Bitboard) << std::endl;
+            rookMagicsFile << RookMagics[i].shift << std::endl;
+        }
+        rookMagicsFile.close();
+    }
+    if (pt == BISHOP) {
         std::cout << "BishopTable size is " << bishopTableSize << std::endl;
+        std::ofstream bishopTableFile;
+        bishopTableFile.open("bishopTable.txt", std::ios::out);
+        for (uint64_t i = 0; i < bishopTableSize; i++) {
+            bishopTableFile << BishopTable[i].b[0] << " " << BishopTable[i].b[1] << " " << BishopTable[i].b[2] << " " << BishopTable[i].b[3] << std::endl;
+        }
+        bishopTableFile.close();
+        std::ofstream bishopMagicsFile;
+        bishopMagicsFile.open("bishopMagics.txt", std::ios::out);
+        for (int i = 0; i < SQUARE_NB; i++) {
+            bishopMagicsFile << BishopMagics[i].mask.b[0] << " " << BishopMagics[i].mask.b[1] << " " << BishopMagics[i].mask.b[2] << " " << BishopMagics[i].mask.b[3] << std::endl;
+            bishopMagicsFile << BishopMagics[i].magic.b[0] << " " << BishopMagics[i].magic.b[1] << " " << BishopMagics[i].magic.b[2] << " " << BishopMagics[i].magic.b[3] << std::endl;
+            bishopMagicsFile << (BishopMagics[i].attacks - BishopTable)/sizeof(Bitboard) << std::endl;
+            bishopMagicsFile << BishopMagics[i].shift << std::endl;
+        }
+        bishopMagicsFile.close();
+    }
 
   }
 }
