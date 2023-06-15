@@ -123,7 +123,7 @@ inline Bitboard  operator^(Square s, Bitboard b) { return b ^ s; }
 
 inline Bitboard  operator|(Square s1, Square s2) { return square_bb(s1) | s2; }
 
-constexpr inline more_than_one_b64(uint64_t x) {
+constexpr bool inline more_than_one_b64(uint64_t x) {
     return x & (x - 1);
 }
 
