@@ -22,7 +22,14 @@ using namespace Bitboards;
 
 int main() {
     cout << "Hello world!" << endl;
-    Bitboards::init();
-    cout << pretty(PseudoAttacks[KING][make_square(FILE_B, RANK_10)]) << endl;
+    Bitboard t = (NoSquares | SQ_P16);
+    unsigned n;
+    while (true) {
+        cin >> n;
+        cout << pretty(t.auxForRightShift(n & 0x3F)) << endl;
+        cout << pretty(t >> n) << endl;
+    }
+
+    //Bitboards::init();
     return 0;
 }

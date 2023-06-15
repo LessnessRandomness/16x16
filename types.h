@@ -33,8 +33,10 @@ using Key = uint64_t;
 struct Bitboard {
     uint64_t b[4];
 
-    constexpr Bitboard operator >> (unsigned int bits) const {
-        Bitboard bb = {.b {b[0], b[1], b[2], b[3]}};
+    constexpr Bitboard auxForRightShift(unsigned int bits) const {
+        assert(bits < 64);
+        Bitboard bb = {.b = {b[0], b[1], b[2], b[3]}};
+        if (bits == 0) return bb;
         unsigned int nn = 64 - bits;
         uint64_t mask = ~0 >> nn;
         uint64_t r = b[1] & mask;
@@ -45,10 +47,25 @@ struct Bitboard {
         bb.b[2] = (b[2] >> bits) | (r << nn);
         bb.b[3] >>= bits;
         return bb;
+    }
+
+    constexpr Bitboard operator >> (unsigned int bits) const {
+        Bitboard t = auxForRightShift(bits & 0x3F);
+        if (bits >= 256)
+            return {.b = {0, 0, 0, 0}};
+        if (bits >= 192)
+            return {.b = {t.b[3], 0, 0, 0}};
+        if (bits >= 128)
+            return {.b = {t.b[2], t.b[3], 0, 0}};
+        if (bits >= 64)
+            return {.b = {t.b[1], t.b[2], t.b[3], 0}};
+        return t;
     };
 
-    constexpr Bitboard operator << (unsigned int bits) const {
-        Bitboard bb = {.b {b[0], b[1], b[2], b[3]}};
+    constexpr Bitboard auxForLeftShift(unsigned int bits) const {
+        assert(bits <= 64);
+        Bitboard bb = {.b = {b[0], b[1], b[2], b[3]}};
+        if (bits == 0) return bb;
         unsigned int nn = 64 - bits;
         uint64_t mask = ~0 << nn;
         uint64_t r = b[1] & mask;
@@ -59,6 +76,19 @@ struct Bitboard {
         bb.b[2] = (b[2] << bits) | (r >> nn);
         bb.b[3] <<= bits;
         return bb;
+    }
+
+    constexpr Bitboard operator << (unsigned int bits) const {
+        Bitboard t = auxForLeftShift(bits & 0x3F);
+        if (bits >= 256)
+            return {.b = {0, 0, 0, 0}};
+        if (bits >= 192)
+            return {.b = {0, 0, 0, t.b[0]}};
+        if (bits >= 128)
+            return {.b = {0, 0, t.b[0], t.b[1]}};
+        if (bits >= 64)
+            return {.b = {0, t.b[0], t.b[1], t.b[2]}};
+        return t;
     };
 
     inline Bitboard& operator |=(const Bitboard x) {
