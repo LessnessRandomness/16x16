@@ -150,11 +150,18 @@ namespace {
     Bitboard edges, b;
     int cnt = 0, size = 0;
 
+    if (pt == BISHOP)
+        std::cout << "Starting init_magics function for bishop" << std::endl;
+    if (pt == ROOK)
+        std::cout << "Starting init_magics function for rook" << std::endl;
+
     // for calculating the sizes of RookTable and BishopTable
     uint64_t rookTableSize = 0ULL, bishopTableSize = 0ULL;
 
     for (Square s = SQ_A1; s <= SQ_P16; ++s)
     {
+        std::cout << "Starting with square N-" << s << std::endl;
+
         // Board edges are not considered in the relevant occupancies
         edges = ((Rank1BB | Rank16BB) & ~rank_bb(s)) | ((FileABB | FilePBB) & ~file_bb(s));
 
@@ -165,7 +172,6 @@ namespace {
         // apply to the 64 or 32 bits word to get the index.
         Magic& m = magics[s];
         m.mask  = sliding_attack(pt, s, NoSquares) & ~edges;
-        std::cout << Bitboards::pretty(m.mask) << std::endl;
         m.shift = 256 - popcount(m.mask);
 
         // Set the offset for the attacks table of the square. We have individual
@@ -175,15 +181,20 @@ namespace {
         //
         if (pt == ROOK) {
             rookTableSize += s == SQ_A1 ? 1 : size;
-            if (rookTableSize > 0x10000000)
+            if (rookTableSize > 0x10000000) {
                 std::cout << "Error: RookTable size is bigger than 0x10000000" << std::endl;
+                exit(-1);
             }
+        }
         if (pt == BISHOP) {
             bishopTableSize += s == SQ_A1 ? 1 : size;
-            if (bishopTableSize > 0x10000000)
+            if (bishopTableSize > 0x10000000) {
                 std::cout << "Error: BishopTable size is bigger than 0x10000000" << std::endl;
+                exit(-1);
+            }
         }
 
+        std::cout << "  executing Carry-Rippler trick" << std::endl;
         // Use Carry-Rippler trick to enumerate all subsets of masks[s] and
         // store the corresponding sliding attack bitboard in reference[].
         b = NoSquares;
@@ -195,13 +206,16 @@ namespace {
             b = (b - m.mask) & m.mask;
         } while (nonemptyBB(b));
 
+        std::cout << "  initializing PRNG" << std::endl;
         // assumed 64bit computer and replaced is64Bit with true (LR)
         PRNG rng(seeds[true][rank_of(s)]);
 
+        std::cout << "  searching for a magic for the square" << std::endl;
         // Find a magic for square 's' picking up an (almost) random number
         // until we find the one that passes the verification test.
         for (int i = 0; i < size; )
         {
+            std::cout << "    generating m.magic" << std::endl;
             for (m.magic = NoSquares; popcount((m.magic * m.mask) >> (SQUARE_NB - FILE_NB)) < FILE_NB - 2; )
                 m.magic = rng.sparse_rand(); // rng.sparse_rand<Bitboard>();
 
@@ -212,9 +226,20 @@ namespace {
             // and save it in epoch[], little speed-up trick to avoid resetting
             // m.attacks[] after every failed attempt.
 
+            std::cout << "    something to do with m.attacks" << std::endl;
             for (++cnt, i = 0; i < size; ++i)
             {
+                if (i >= 1 << (FILE_NB + RANK_NB - 4)) {
+                    std::cout << "      index i is too big, it must be less than " << (1 << (FILE_NB + RANK_NB - 4)) << std::endl;
+                    exit(-1);
+                }
+
                 unsigned idx = m.index(occupancy[i]);
+
+                if (idx >= 1 << (FILE_NB + RANK_NB - 4)) {
+                    std::cout << "      index idx is too big, it must be less than " << (1 << (FILE_NB + RANK_NB - 4)) << std::endl;
+                    exit(-1);
+                }
 
                 if (epoch[idx] < cnt)
                 {

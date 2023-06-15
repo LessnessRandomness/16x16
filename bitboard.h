@@ -93,6 +93,13 @@ struct Magic {
   // Compute the attack's index using the 'magic bitboards' approach
   unsigned index(Bitboard occupied) const {
     // I presume 64bit computer (if that's what Is64Bit meant)
+    unsigned t = unsigned((((occupied & mask) * magic) >> shift).b[0]);
+    if (t >= (1 << (FILE_NB + RANK_NB - 4))) {
+        std::cout << "calculated index for the specific Magic struct is definitely too big" << std::endl;
+        std::cout << "mask bitboard is:" << std::endl << Bitboards::pretty(mask) << std::endl;
+        std::cout << "magic bitboard is:" << std::endl << Bitboards::pretty(magic) << std::endl;
+        std::cout << "shift is " << shift << std::endl;
+    }
     return unsigned((((occupied & mask) * magic) >> shift).b[0]);
   }
 };
