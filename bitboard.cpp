@@ -137,8 +137,8 @@ namespace {
 
   void init_magics(PieceType pt, Bitboard table[], Magic magics[]) {
 
-    int seeds[][RANK_NB] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+    int seeds[][RANK_NB] = {{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
+                            {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}};
 
     // Optimal PRNG seeds to pick the correct magics in the shortest time
     //int seeds[][RANK_NB] = { { 8977, 44560, 54343, 38998,  5731, 95205, 104912, 17020 },
