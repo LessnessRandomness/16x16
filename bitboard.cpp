@@ -17,6 +17,7 @@
 #include <fstream>
 #include <algorithm>
 #include <bitset>
+#include <string> //
 
 #include "bitboard.h"
 
@@ -160,7 +161,10 @@ namespace {
 
     for (Square s = SQ_A1; s <= SQ_P16; ++s)
     {
-        std::cout << "Starting with square N-" << s << std::endl;
+        if (pt == BISHOP)
+            std::cout << "Bishop, square " << int(s)+1 << "/64" << std::endl;
+        if (pt == ROOK)
+            std::cout << "Rook, square " << int(s)+1 << "/64" << std::endl;
 
         // Board edges are not considered in the relevant occupancies
         edges = ((Rank1BB | Rank16BB) & ~rank_bb(s)) | ((FileABB | FilePBB) & ~file_bb(s));
@@ -215,6 +219,11 @@ namespace {
         // until we find the one that passes the verification test.
         for (int i = 0; i < size; )
         {
+            if (pt == BISHOP)
+                std::cout << "Bishop, square " << (int(s)+1) << "/64 " << i << "/" << size << std::endl;
+            if (pt == ROOK)
+                std::cout << "Rook, square " << (int(s)+1) << "/64 " << i << "/" << size << std::endl;
+
             std::cout << "    generating m.magic" << std::endl;
             for (m.magic = NoSquares; popcount((m.magic * m.mask) >> (SQUARE_NB - FILE_NB)) < FILE_NB - 2; )
                 m.magic = rng.sparse_rand(); // rng.sparse_rand<Bitboard>();
@@ -229,6 +238,11 @@ namespace {
             std::cout << "    something to do with m.attacks" << std::endl;
             for (++cnt, i = 0; i < size; ++i)
             {
+                if (pt == BISHOP)
+                    std::cout << "    Bishop, square " << (int(s)+1) << "/64 " << i << "/" << size << std::endl;
+                if (pt == ROOK)
+                    std::cout << "    Rook, square " << (int(s)+1) << "/64 " << i << "/" << size << std::endl;
+
                 if (i >= 1 << (FILE_NB + RANK_NB - 4)) {
                     std::cout << "      index i is too big, it must be less than " << (1 << (FILE_NB + RANK_NB - 4)) << std::endl;
                     exit(-1);
