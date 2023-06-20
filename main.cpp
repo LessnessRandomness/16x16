@@ -22,6 +22,8 @@ using namespace Bitboards;
 
 int main() {
     cout << "Hello world!" << endl;
-    Bitboards::init();
+    init();
+    std::cout << pretty(RookAttacks(SQ_D3, NoSquares)) << std::endl;
+    std::cout << pretty(BishopAttacks(SQ_D3, NoSquares)) << std::endl;
     return 0;
 }

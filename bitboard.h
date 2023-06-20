@@ -83,29 +83,6 @@ extern Bitboard LineBB[SQUARE_NB][SQUARE_NB];
 extern Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
 extern Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 
-/// Magic holds all magic bitboards relevant data for a single square
-struct Magic {
-  Bitboard  mask;
-  Bitboard  magic;
-  Bitboard* attacks;
-  unsigned  shift;
-
-  // Compute the attack's index using the 'magic bitboards' approach
-  unsigned index(Bitboard occupied) const {
-    // I presume 64bit computer (if that's what Is64Bit meant)
-    unsigned t = unsigned((((occupied & mask) * magic) >> shift).b[0]);
-    if (t >= (1 << (FILE_NB + RANK_NB - 4))) {
-        std::cout << "calculated index for the specific Magic struct is definitely too big" << std::endl;
-        std::cout << "mask bitboard is:" << std::endl << Bitboards::pretty(mask) << std::endl;
-        std::cout << "magic bitboard is:" << std::endl << Bitboards::pretty(magic) << std::endl;
-        std::cout << "shift is " << shift << std::endl;
-    }
-    return unsigned((((occupied & mask) * magic) >> shift).b[0]);
-  }
-};
-
-extern Magic RookMagics[SQUARE_NB];
-extern Magic BishopMagics[SQUARE_NB];
 
 inline Bitboard square_bb(Square s) {
   assert(is_ok(s));
@@ -298,13 +275,18 @@ inline Bitboard attacks_bb(Square s) {
 /// assuming the board is occupied according to the passed Bitboard.
 /// Sliding piece attacks do not continue past an occupied square.
 
+namespace Bitboards {
+  inline Bitboard RookAttacks(Square s, Bitboard occupied);
+  inline Bitboard BishopAttacks(Square s, Bitboard occupied);
+}
+
 template<PieceType Pt>
 inline Bitboard attacks_bb(Square s, Bitboard occupied) {
   assert((Pt != PAWN) && (is_ok(s)));
   switch (Pt)
   {
-  case BISHOP: return BishopMagics[s].attacks[BishopMagics[s].index(occupied)];
-  case ROOK  : return   RookMagics[s].attacks[  RookMagics[s].index(occupied)];
+  case BISHOP: return Bitboards::BishopAttacks(s, occupied);
+  case ROOK  : return Bitboards::RookAttacks(s, occupied);
   case QUEEN : return attacks_bb<BISHOP>(s, occupied) | attacks_bb<ROOK>(s, occupied);
   default    : return PseudoAttacks[Pt][s];
   }
