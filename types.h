@@ -194,6 +194,31 @@ enum Color {
   WHITE, BLACK, COLOR_NB = 2
 };
 
+enum Value : int {
+  VALUE_ZERO      = 0,
+  VALUE_DRAW      = 0,
+  VALUE_KNOWN_WIN = 10000,
+  VALUE_MATE      = 32000,
+  VALUE_INFINITE  = 32001,
+  VALUE_NONE      = 32002,
+
+  VALUE_TB_WIN_IN_MAX_PLY  =  VALUE_MATE - 2 * MAX_PLY,
+  VALUE_TB_LOSS_IN_MAX_PLY = -VALUE_TB_WIN_IN_MAX_PLY,
+  VALUE_MATE_IN_MAX_PLY  =  VALUE_MATE - MAX_PLY,
+  VALUE_MATED_IN_MAX_PLY = -VALUE_MATE_IN_MAX_PLY,
+
+  // In the code, we make the assumption that these values
+  // are such that non_pawn_material() can be used to uniquely
+  // identify the material on the board.
+  PawnValueMg   = 126,   PawnValueEg   = 208,
+  KnightValueMg = 781,   KnightValueEg = 854,
+  BishopValueMg = 825,   BishopValueEg = 915,
+  RookValueMg   = 1276,  RookValueEg   = 1380,
+  QueenValueMg  = 2538,  QueenValueEg  = 2682,
+
+  MidgameLimit  = 15258, EndgameLimit  = 3915
+};
+
 enum PieceType {
   NO_PIECE_TYPE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
   ALL_PIECES = 0,
@@ -249,6 +274,45 @@ enum File : int {
 enum Rank : int {
   RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9, RANK_10, RANK_11, RANK_12, RANK_13, RANK_14, RANK_15, RANK_16, RANK_NB
 };
+
+// Keep track of what a move changes on the board (used by NNUE)
+struct DirtyPiece {
+
+  // Number of changed pieces
+  int dirty_num;
+
+  // Max 3 pieces can change in one move. A promotion with capture moves
+  // both the pawn and the captured piece to SQ_NONE and the piece promoted
+  // to from SQ_NONE to the capture square.
+  Piece piece[3];
+
+  // From and to squares, which may be SQ_NONE
+  Square from[3];
+  Square to[3];
+};
+
+/// Score enum stores a middlegame and an endgame value in a single integer (enum).
+/// The least significant 16 bits are used to store the middlegame value and the
+/// upper 16 bits are used to store the endgame value. We have to take care to
+/// avoid left-shifting a signed int to avoid undefined behavior.
+enum Score : int { SCORE_ZERO };
+
+constexpr Score make_score(int mg, int eg) {
+  return Score((int)((unsigned int)eg << 16) + mg);
+}
+
+/// Extracting the signed lower and upper 16 bits is not so trivial because
+/// according to the standard a simple cast to short is implementation defined
+/// and so is a right shift of a signed integer.
+inline Value eg_value(Score s) {
+  union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(s + 0x8000) >> 16) };
+  return Value(eg.s);
+}
+
+inline Value mg_value(Score s) {
+  union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(s)) };
+  return Value(mg.s);
+}
 
 #define ENABLE_BASE_OPERATORS_ON(T)                                \
 constexpr T operator+(T d1, int d2) { return T(int(d1) + d2); }    \
